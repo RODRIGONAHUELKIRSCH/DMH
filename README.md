@@ -7,10 +7,10 @@ The system models financial operations through a structured Entity-Relationship 
 real-world constranints and banking rules.
 
 ##  Entity - Relation Diagram
-(![Diagrams/MER-DMH.png](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/MER-DMH.png))
+![Diagrams/MER-DMH.png](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/MER-DMH.png)
 
 ## Relational Diagram
-(![Diagrams/MR-DMH.png](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/MR-DMH.png))
+![Diagrams/MR-DMH.png](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/MR-DMH.png)
 
 # User Represents a registered user of the platform.
 
