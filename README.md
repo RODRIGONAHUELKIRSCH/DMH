@@ -7,10 +7,10 @@ The system models financial operations through a structured Entity-Relationship 
 real-world constranints and banking rules.
 
 ##  Entity - Relation Diagram
-![DER Diagram] (Diagrams/MER-DMH.png)
+(![Diagrams/MER-DMH.png](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/MER-DMH.png))
 
 ## Relational Diagram
-![DR Diagram] (Diagrams/MR-DMH.png)
+(![Diagrams/MR-DMH.png](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/MR-DMH.png))
 
 # User Represents a registered user of the platform.
 
@@ -18,7 +18,7 @@ Attributes: id(PK), name, lastname, dni, email, password, verified_email.
 A user may optionally verify their email address. The user entity acts as the root entity of the system.
 
 # Account: Represents a digital wallet account.
-
+git add .
 Attributes: id(PK), cvu, amount, alias.
 
 An account:
