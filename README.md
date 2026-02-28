@@ -42,16 +42,16 @@ approval flows and business validations.
 
 # Business Rules 
 
-A User can have multiple Accounts (1:N)
-An Account bolongs to exactly one User.
-An Account can perform multiple transactions.
-A card belongs to exactly one Account.
-A card can perform multiple Transactions.
-A transaction must be executed by either an Account or a Card.
+·A User can have multiple Accounts (1:N)
+·An Account bolongs to exactly one User.
+·An Account can perform multiple transactions.
+·A card belongs to exactly one Account.
+·A card can perform multiple Transactions.
+·A transaction must be executed by either an Account or a Card.
 
 # Design Decisions
 
-# 1 CARD
+# 1 Card
 
 Card was modeled as a separate entity instead of being embedded within Account because: 
         · It has its own lifecycle(expiration date, provider, type).
@@ -59,14 +59,14 @@ Card was modeled as a separate entity instead of being embedded within Account b
         · It avoids overloading the Account entity with unrelated attributes.
         · It maintains normalization principles.
 
-# 2 TRANSACTIONS
+# 2 Transactions
 
 Transactions was designed as an independent entity because:
         · It represents inmutable financial history.
         · it centralizes financial operations.
         · Both Account and Card can generate transactions.
 
-# CARDINALITY DECISIONS
+# Cardinality decisions
 
 Cardinalities were defined to real-world financial constraints:
             · An account cannot exist without a user.
