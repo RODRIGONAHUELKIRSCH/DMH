@@ -12,69 +12,119 @@ real-world constranints and banking rules.
 ## Relational Diagram
 ![Diagrams/MR-DMH.png](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/MR-DMH.png)
 
-# User Represents a registered user of the platform.
+## User
+Represents a registered user of the platform.
 
-Attributes: id(PK), name, lastname, dni, email, password, verified_email.
-A user may optionally verify their email address. The user entity acts as the root entity of the system.
+**Attributes:**
+- id (PK)
+- name
+- lastname
+- dni
+- email
+- password
+- verified_email
 
-# Account: Represents a digital wallet account.
-git add .
-Attributes: id(PK), cvu, amount, alias.
+A user may optionally verify their email address.  
+The User entity acts as the root entity of the system.
+
+---
+
+## Account
+Represents a digital wallet account.
+
+**Attributes:**
+- id (PK)
+- cvu
+- amount
+- alias
 
 An account:
-            - Belongs to exactly one user.
-            - Can perform multiple transactions.
-            - Can have multiple associated cards.
-The cvu and alias provide two alternative mechanism for transferring funds.
+- Belongs to exactly one user.
+- Can perform multiple transactions.
+- Can have multiple associated cards.
 
-# Card: Represents a debit/credit card associated with an account
+The CVU and alias provide two alternative mechanisms for transferring funds.
 
-Attributes: id(PK), card_number, card_type, card_company, card_due_date.
-A card: 
-        - Belongs to exactly one account.
-        - Can perform transactions independently from the account entity.
+---
 
-# Transactions: Represents financial operations within the system.
+## Card
+Represents a debit/credit card associated with an account.
 
-Attributes: id(PK), date, type, description, amount, state.
-The state attribute model the lifecycle of a transaction, allowing the system to manage asynchronous
-approval flows and business validations.
+**Attributes:**
+- id (PK)
+- card_number
+- card_type
+- card_company
+- card_due_date
 
-# Business Rules 
+A card:
+- Belongs to exactly one account.
+- Can perform transactions independently from the account entity.
 
--A User can have multiple Accounts (1:N)
--An Account bolongs to exactly one User.
--An Account can perform multiple transactions.
--A card belongs to exactly one Account.
--A card can perform multiple Transactions.
--A transaction must be executed by either an Account or a Card.
+---
 
-# Design Decisions
+## Transactions
+Represents financial operations within the system.
 
-# 1 Card
+**Attributes:**
+- id (PK)
+- date
+- type
+- description
+- amount
+- state
 
-Card was modeled as a separate entity instead of being embedded within Account because: 
-        - It has its own lifecycle(expiration date, provider, type).
-        - It can independently perform transactions.
-        - It avoids overloading the Account entity with unrelated attributes.
-        - It maintains normalization principles.
+The `state` attribute models the lifecycle of a transaction, allowing the system to manage asynchronous approval flows and business validations.
 
-# 2 Transactions
+---
 
-Transactions was designed as an independent entity because:
-        - It represents inmutable financial history.
-        - it centralizes financial operations.
-        - Both Account and Card can generate transactions.
+## Business Rules
 
-# Cardinality decisions
+- A User can have multiple Accounts (1:N).
+- An Account belongs to exactly one User.
+- An Account can perform multiple Transactions.
+- A Card belongs to exactly one Account.
+- A Card can perform multiple Transactions.
+- A Transaction must be executed by either an Account or a Card.
 
-Cardinalities were defined to real-world financial constraints:
-            - An account cannot exist without a user.
-            - A card cannot exist without an account.
-            - A transaction must always belong to a single executor entity.
-            - A use rmay exist without having accounts.
+---
 
-# Model Limitations
-        · Currency type is not explicitly modeled(assumed it only can be argentine pesos).
-        · Transaction fees are not represented.
-        · No joint accounts are supported.
+## Design Decisions
+
+### Card
+
+Card was modeled as a separate entity instead of being embedded within Account because:
+
+- It has its own lifecycle (expiration date, provider, type).
+- It can independently perform transactions.
+- It avoids overloading the Account entity.
+- It maintains normalization principles.
+
+---
+
+### Transactions
+
+Transactions were designed as an independent entity because:
+
+- They represent immutable financial history.
+- They centralize financial operations.
+- Both Account and Card can generate transactions.
+
+---
+
+## Cardinality Decisions
+
+Cardinalities were defined according to real-world financial constraints:
+
+- An account cannot exist without a user.
+- A card cannot exist without an account.
+- A transaction must always belong to a single executor entity.
+- A user may exist without having accounts.
+
+---
+
+## Model Limitations
+
+- Currency type is not explicitly modeled (assumed to be Argentine pesos).
+- Transaction fees are not represented.
+- No joint accounts are supported.
