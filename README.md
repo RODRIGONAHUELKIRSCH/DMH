@@ -4,7 +4,7 @@ Digital Money House (DMH) is designed to manage users, accounts, cards, and fina
 secure and scalable digital wallet system.
 
 The system models financial operations through a structured Entity-Relationship design that reflects 
-real-world constranints and banking rules.
+real-world constraints and banking rules.
 
 ##  Entity - Relation Diagram
 ![Diagrams/MER-DMH.png](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/MER-DMH.png)
@@ -59,7 +59,7 @@ Represents a debit/credit card associated with an account.
 
 A card:
 - Belongs to exactly one account.
-- Can perform transactions independently from the account entity.
+- Can perform transactions independently of the account entity.
 
 ---
 
@@ -128,3 +128,12 @@ Cardinalities were defined according to real-world financial constraints:
 - Currency type is not explicitly modeled (assumed to be Argentine pesos).
 - Transaction fees are not represented.
 - No joint accounts are supported.
+
+---
+
+## Software Used
+
+- Java 25 jdk
+- Maven 3.9.12
+- Docker
+- Keycloak
