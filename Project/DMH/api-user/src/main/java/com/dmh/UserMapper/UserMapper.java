@@ -1,25 +1,25 @@
 package com.dmh.UserMapper;
 
-import org.springframework.stereotype.Component;
 import com.dmh.Entity.User;
 import com.dmh.UserDTO.UserDTO;
+import org.springframework.stereotype.Component;
 
 @Component(value = "UserMapper")
 public class UserMapper {
     public UserDTO UsertoDTO(User user){
         UserDTO dto=new UserDTO();
-        dto.setNyAp(user.getNyAp());
+        dto.setNombre(user.getNombre());
         dto.setTelefono(user.getTelefono());
-        dto.setDNI(user.getDNI());
+        dto.setDni(user.getDni());
         dto.setEmail(user.getEmail());
         dto.setCvu(user.getCvu());
         dto.setAlias(user.getAlias());
+        dto.setKeycloakId(user.getKeycloackId());
         return dto;
     }
 
     public User DTOtoUser(UserDTO dto){
-        User user= new User(dto.getNyAp(),dto.getEmail(),dto.getTelefono(),dto.getPwd(),dto.getDNI());
 
-        return user;
+        return new User(dto.getNombre(),dto.getApellido(),dto.getEmail(),dto.getTelefono(),dto.getDni(),dto.getKeycloakId());
     }
 }

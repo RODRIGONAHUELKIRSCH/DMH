@@ -18,6 +18,7 @@
         <module>api-gateway</module>
         <module>api-eureka</module>
         <module>api-user</module>
+        <module>api-account</module>
     </modules>  
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

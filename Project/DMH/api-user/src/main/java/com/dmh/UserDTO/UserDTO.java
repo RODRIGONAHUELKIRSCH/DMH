@@ -1,6 +1,7 @@
 package com.dmh.UserDTO;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
@@ -8,18 +9,22 @@ import jakarta.validation.constraints.NotBlank;
 public class UserDTO {
 
     @NotBlank
-    private String NyAp;
+    private String nombre;
+
+    @NotBlank
+    private String apellido;
 
     @NotBlank
     private String telefono;
 
     @NotBlank
-    private String DNI;
+    private String dni;
 
     @Email
     private String email;
 
     @NotBlank
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String pwd;
 
     @NotBlank
@@ -28,34 +33,47 @@ public class UserDTO {
     @NotBlank
     private String alias;
 
+    @NotBlank
+    private String keycloakId;
+
     public UserDTO(){}
 
-    public UserDTO(String NyAp,String telefono,String DNI,String email,String pwd, String cvu,String alias ){
+    public UserDTO(String nombre,String apellido,String telefono,String DNI,String email,String pwd, String cvu,String alias,String keycloakId ){
 
-        this.NyAp=NyAp;
+        this.nombre=nombre;
+        this.apellido=apellido;
         this.telefono=telefono;
-        this.DNI=DNI;
+        this.dni=DNI;
         this.email=email;
         this.pwd=pwd;
         this.cvu=cvu;
         this.alias=alias;
+        this.keycloakId=keycloakId;
     }
 
 
-    public UserDTO(String NyAp, String email){
-        this.NyAp=NyAp;
+    public UserDTO(String Nombre, String email){
+        this.nombre=Nombre;
         this.email=email;
     }
     public UserDTO(String email){
         this.email=email;
     }
 
-    public String getNyAp() {
-        return NyAp;
+    public String getNombre() {
+        return nombre;
     }
 
-    public void setNyAp(String nyAp) {
-        NyAp = nyAp;
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getApellido() {
+        return apellido;
+    }
+
+    public void setApellido(String apellido) {
+        this.apellido = apellido;
     }
 
     public String getTelefono() {
@@ -82,12 +100,12 @@ public class UserDTO {
         this.pwd = pwd;
     }
 
-    public String getDNI() {
-        return DNI;
+    public String getDni() {
+        return dni;
     }
 
-    public void setDNI(String dNI) {
-        DNI = dNI;
+    public void setDni(String dni) {
+        this.dni = dni;
     }
 
     public String getCvu() {
@@ -105,4 +123,12 @@ public class UserDTO {
     public void setAlias(String alias) {
         this.alias = alias;
     }
+
+    public String getKeycloakId() {
+        return keycloakId;
+    }
+    public void setKeycloakId(String keycloakId) {
+        this.keycloakId = keycloakId;
+    }
+
 }

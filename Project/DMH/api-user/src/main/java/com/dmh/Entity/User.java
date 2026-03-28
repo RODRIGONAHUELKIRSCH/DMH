@@ -1,5 +1,7 @@
 package com.dmh.Entity;
 
+import jakarta.persistence.*;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,19 +9,19 @@ import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-import jakarta.persistence.*;
 
 @Entity
 @Table(name="users")
 public class User {
     public User(){}
 
-    public User(String name, String email,String telefono,String pwd,String dni)  {
-        this.NyAp = name;
+    public User(String name,String lastname, String email,String telefono,String dni,String keycloackId)  {
+        this.nombre = name;
+        this.apellido = lastname;
         this.email = email;
         this.telefono=telefono;
-        this.pwd=pwd;
-        this.DNI=dni;
+        this.dni=dni;
+        this.keycloackId=keycloackId;
         this.cvu = generateCvu();
         this.alias = generateAlias();
     }
@@ -28,20 +30,22 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name="nyap",nullable = false)
-    private String NyAp;
+    @Column(name="name",nullable = false)
+    private String nombre;
+
+    @Column(name="lastname",nullable = false)
+    private String apellido;
 
     @Column(name="telefono",nullable = false,unique = true)
     private String telefono;
 
     @Column(name = "dni",nullable=false,unique = true)
-    private String DNI;
+    private String dni;
 
     @Column(name = "email",nullable = false,unique = true)
     private String email;
 
-    @Column(name="pwd",nullable =false)
-    private String pwd;
+    private String keycloackId;
 
     @Column(name="cvu",nullable = false, unique = true)
     private String cvu;
@@ -101,18 +105,17 @@ public class User {
         return id;
     }
 
-
     public void setId(UUID id) {
         this.id = id;
     }
 
-    public String getNyAp() {
-        return NyAp;
-    }
+    public String getNombre() {return nombre;}
 
-    public void setNyAp(String nyAp) {
-        NyAp = nyAp;
-    }
+    public void setNombre(String nombre) {this.nombre = nombre;}
+
+    public String getApellido() {return apellido;}
+
+    public void setApellido(String apellido) {this.apellido = apellido;}
 
     public String getTelefono() {
         return telefono;
@@ -130,21 +133,9 @@ public class User {
         this.email = email;
     }
 
-    public String getPwd() {
-        return pwd;
-    }
+    public String getDni() {return dni;}
 
-    public void setPwd(String pwd) {
-        this.pwd = pwd;
-    }
-
-    public String getDNI() {
-        return DNI;
-    }
-
-    public void setDNI(String dNI) {
-        DNI = dNI;
-    }
+    public void setDni(String dni) {this.dni = dni;}
 
     public String getCvu() {
         return cvu;
@@ -161,4 +152,9 @@ public class User {
     public void setAlias(String alias) {
         this.alias = alias;
     }
+
+    public String getKeycloackId() {return keycloackId;}
+
+    public void setKeycloackId(String keycloackId) {this.keycloackId = keycloackId;}
+
 }
