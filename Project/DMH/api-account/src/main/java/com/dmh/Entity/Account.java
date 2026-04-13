@@ -22,7 +22,7 @@ public class Account {
     private String account_type;
 
     @OneToOne(targetEntity = User.class)
-    @PrimaryKeyJoinColumn(name = "id",referencedColumnName = "userId" )
+    @JoinColumn(name = "id",referencedColumnName = "userId")
     private User user;
 
     public  Account(){}
