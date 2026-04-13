@@ -19,6 +19,8 @@
         <module>api-eureka</module>
         <module>api-user</module>
         <module>api-account</module>
+        <module>api-card</module>
+        <module>api-transaction</module>
     </modules>  
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
