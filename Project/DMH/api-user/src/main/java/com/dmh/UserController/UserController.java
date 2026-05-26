@@ -47,6 +47,7 @@ public class UserController {
         );
     }
 
+    //Body logout implementation
 //    @PostMapping("/logout")
 //    public ResponseEntity<String> logout(@RequestBody Map<String, String> body) {
 //        userService.logout(body.get("refresh_token"));

@@ -1,12 +1,18 @@
 package com.dmh.UserService;
 
 import com.dmh.Entity.User;
+import com.dmh.Exceptions.GlobalExceptionHandler;
+import com.dmh.Exceptions.UserBadRequestException;
+import com.dmh.Exceptions.UserInternalServerErrorException;
+import com.dmh.Exceptions.UserInvalidCredentialsException;
 import com.dmh.Keycloak.KeycloakAuth;
 import com.dmh.Keycloak.KeycloakClient;
 import com.dmh.UserDTO.UserDTO;
 import com.dmh.UserMapper.UserMapper;
 import com.dmh.UserRepository.UserRepository;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.InternalServerErrorException;
 import org.keycloak.representations.AccessTokenResponse;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -35,29 +41,61 @@ public class UserService {
 
    @Transactional
     public User register(UserDTO userDTO) {
-        String keycloakId = null;
-        try {
+       String keycloakId = null;
+       try {
 
-            keycloakId = keycloakClient.createUser(userDTO.getNombre(),userDTO.getApellido() ,userDTO.getEmail(), userDTO.getPwd());
-            userDTO.setKeycloakId(keycloakId);
+           keycloakId = keycloakClient.createUser(userDTO.getNombre(), userDTO.getApellido(), userDTO.getEmail(), userDTO.getPwd());
+           userDTO.setKeycloakId(keycloakId);
 
-            User user = userMapper.DTOtoUser(userDTO);
-            user.setKeycloackId(userDTO.getKeycloakId());
+           User user = userMapper.DTOtoUser(userDTO);
+           user.setKeycloackId(userDTO.getKeycloakId());
 
-            return userRepository.save(user);
+           return userRepository.save(user);
 
-        } catch (Exception e) {
-            // Rollback en Keycloak si falla DB
-            if (keycloakId != null) {
-                keycloakClient.deleteUser(keycloakId);
-            }
-            throw new RuntimeException("No se pudo registrar el usuario: " + e.getMessage(), e);
-        }
-    }
+       } catch (RuntimeException ex) {
+           // Rollback en Keycloak si falla DB
+           if (ex instanceof BadRequestException) {
+               throw new UserBadRequestException(
+                       "Bad Request",
+                       ex
+               );
+           }
+
+           if (ex instanceof InternalServerErrorException) {
+
+               throw new UserInternalServerErrorException(
+                       "Internal Server Error",
+                       ex
+               );
+           }
+
+           throw ex;
+
+       }
+   }
 
     @Transactional
     public AccessTokenResponse login(String email, String password) {
-        return keycloakAuth.login(email, password);
+        try{
+            return keycloakAuth.login(email, password);
+        }catch (RuntimeException e){
+
+            if (e instanceof BadRequestException) {
+                throw new BadRequestException(
+                        "Email o contraseña incorrectos",
+                        e
+                );
+            }
+
+            if (e instanceof InternalServerErrorException) {
+                throw new UserInternalServerErrorException(
+                        "Error interno del servidor",
+                        e
+                );
+            }
+            throw e;
+        }
+
     }
 
     @Transactional
@@ -96,8 +134,7 @@ public class UserService {
 
     @Transactional
     public String getEmail(String email){
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado en la base de datos"));
+        User user = userRepository.findByEmail(email);
 
         return user.getEmail();
     }
