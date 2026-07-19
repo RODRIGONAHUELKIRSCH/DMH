@@ -6,6 +6,51 @@ secure and scalable digital wallet system.
 The system models financial operations through a structured Entity-Relationship design that reflects 
 real-world constraints and banking rules.
 
+## Software Used
+
+- Java 25 jdk
+- Maven 3.9.12
+- Docker
+- Keycloak
+- PostgreSQL
+- Spring Boot 4.0
+
+## Microservices
+
+- api-eureka (8761) - Service discovery
+- api-gateway (8080) - Central router
+- api-user (8081) - Users + Auth (Keycloak)
+- api-account (8082) - Accounts, CVU, alias
+- api-card (8083) - Cards
+- api-transaction (8084) - Transfers
+
+## Main Endpoints (api-user)
+
+- POST /api/user/register - Register a new user
+- POST /api/user/login - Authenticate and get tokens
+- POST /api/user/logout - End session (header X-Refresh-Token)
+- POST /api/user/{keycloakId}/send-verification - Send verification email
+- POST /api/user/{keycloakId}/reset-password - Trigger password reset
+
+## Testing
+
+The project has automated tests that run with:
+
+mvn test
+
+Coverage:
+- Unit tests in ApiUserServiceTest.java
+- Integration tests in ApiAiUserControllerTest.java
+- 1 context test in ApiUserApplicationTests.java
+
+Manual and exploratory testing docs:
+
+
+Postman collection:
+https://research-specialist-54290331-s-team.postman.co/workspace/My-Workspace~1ab275e5-9ebd-493c-83b5-0f6c973eb246/collection/36146276-cd85997a-2c1a-4c85-80f5-98d80cf5d298&action=share&source=copy-link&creator=36146276
+
+
+
 ##  Entity - Relation Diagram
 ![Diagrams/MER-DMH.png](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DER-DMH.png)
 
@@ -130,10 +175,3 @@ Cardinalities were defined according to real-world financial constraints:
 - No joint accounts are supported.
 
 ---
-
-## Software Used
-
-- Java 25 jdk
-- Maven 3.9.12
-- Docker
-- Keycloak

@@ -1,9 +1,9 @@
 package com.dmh.Entity;
 
 import jakarta.persistence.*;
+import org.apache.catalina.User;
 import java.time.ZonedDateTime;
 import java.util.UUID;
-
 @Entity
 @Table(name = "account")
 public class Account {
@@ -21,9 +21,8 @@ public class Account {
     @Column(name="account_type",nullable = false)
     private String account_type;
 
-    @OneToOne(targetEntity = User.class)
-    @JoinColumn(name = "id",referencedColumnName = "userId")
-    private User user;
+    @Column(name="userId", nullable = false,unique = true)
+    private UUID userId;
 
     public  Account(){}
 

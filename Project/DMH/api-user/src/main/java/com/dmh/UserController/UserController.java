@@ -62,15 +62,15 @@ public class UserController {
         return ResponseEntity.ok("User Logout Successfully");
     }
 
-    @PostMapping("/{keycloakId}/send-verification")
-    public ResponseEntity<String> sendEmailVerification(@PathVariable String keycloakId) {
-        userService.sendEmailVerification(keycloakId);
+    @PostMapping("/send-verification")
+    public ResponseEntity<String> sendEmailVerification(@RequestParam String email) {
+        userService.sendEmailVerification(email);
         return ResponseEntity.ok("Email de verificación enviado correctamente");
     }
 
-    @PostMapping("/{keycloakId}/reset-password")
-    public ResponseEntity<Void> resetPassword(@PathVariable String keycloakId) {
-        userService.resetUserPassword(keycloakId);
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestParam String email) {
+        userService.resetPasswordByEmail(email);
         return ResponseEntity.ok().build();
     }
 

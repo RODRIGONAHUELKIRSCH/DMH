@@ -5,6 +5,9 @@ import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.UsersResource;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -49,7 +52,17 @@ public String createUser(String nombre, String apellido, String email, String pw
 
     UsersResource usersResource = keycloak.realm(realm).users();
 
-    usersResource.create(user);
+    Response response = usersResource.create(user);
+    try {
+        int status = response.getStatus();
+        if (status == 409) {
+            throw new BadRequestException("User already exists in Keycloak: HTTP " + status);
+        } else if (status >= 400) {
+            throw new WebApplicationException("Keycloak error: HTTP " + status);
+        }
+    } finally {
+        response.close();
+    }
 
     List<UserRepresentation> users = usersResource.search(email, true);
     if (users.isEmpty()) {

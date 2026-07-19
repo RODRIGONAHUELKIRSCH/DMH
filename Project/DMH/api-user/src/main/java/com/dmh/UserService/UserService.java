@@ -1,10 +1,10 @@
 package com.dmh.UserService;
 
 import com.dmh.Entity.User;
-import com.dmh.Exceptions.GlobalExceptionHandler;
 import com.dmh.Exceptions.UserBadRequestException;
 import com.dmh.Exceptions.UserInternalServerErrorException;
 import com.dmh.Exceptions.UserInvalidCredentialsException;
+import com.dmh.Exceptions.UserNotFoundException;
 import com.dmh.Keycloak.KeycloakAuth;
 import com.dmh.Keycloak.KeycloakClient;
 import com.dmh.UserDTO.UserDTO;
@@ -12,7 +12,7 @@ import com.dmh.UserMapper.UserMapper;
 import com.dmh.UserRepository.UserRepository;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.WebApplicationException;
 import org.keycloak.representations.AccessTokenResponse;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -40,78 +40,74 @@ public class UserService {
     }
 
    @Transactional
-    public User register(UserDTO userDTO) {
-       String keycloakId = null;
-       try {
+     public User register(UserDTO userDTO) {
+        String keycloakId = null;
+        try {
 
-           keycloakId = keycloakClient.createUser(userDTO.getNombre(), userDTO.getApellido(), userDTO.getEmail(), userDTO.getPwd());
-           userDTO.setKeycloakId(keycloakId);
+             keycloakId = keycloakClient.createUser(userDTO.getNombre(), userDTO.getApellido(), userDTO.getEmail(), userDTO.getPwd());
+             userDTO.setKeycloakId(keycloakId);
 
-           User user = userMapper.DTOtoUser(userDTO);
-           user.setKeycloackId(userDTO.getKeycloakId());
+             User user = userMapper.DTOtoUser(userDTO);
+             user.setKeycloackId(userDTO.getKeycloakId());
 
-           return userRepository.save(user);
+             return userRepository.save(user);
 
-       } catch (RuntimeException ex) {
-           // Rollback en Keycloak si falla DB
-           if (ex instanceof BadRequestException) {
-               throw new UserBadRequestException(
-                       "Bad Request",
-                       ex
-               );
-           }
-
-           if (ex instanceof InternalServerErrorException) {
-
-               throw new UserInternalServerErrorException(
-                       "Internal Server Error",
-                       ex
-               );
-           }
-
-           throw ex;
-
-       }
-   }
+         } catch (BadRequestException ex) {
+             throw new UserBadRequestException("Error de registro: " + ex.getMessage());
+         } catch (WebApplicationException ex) {
+             throw new UserInternalServerErrorException("Error de Keycloak: " + ex.getMessage());
+         } catch (Exception ex) {
+             throw new UserInternalServerErrorException("Error al registrar usuario: " + ex.getMessage());
+         }
+     }
 
     @Transactional
     public AccessTokenResponse login(String email, String password) {
-        try{
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
+
+        try {
             return keycloakAuth.login(email, password);
-        }catch (RuntimeException e){
-
-            if (e instanceof BadRequestException) {
-                throw new BadRequestException(
-                        "Email o contraseña incorrectos",
-                        e
-                );
+        } catch (Exception e) {
+            String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+            if (msg.contains("401") || msg.contains("unauthorized")) {
+                throw new UserInvalidCredentialsException("Email o contraseña incorrectos");
             }
-
-            if (e instanceof InternalServerErrorException) {
-                throw new UserInternalServerErrorException(
-                        "Error interno del servidor",
-                        e
-                );
-            }
-            throw e;
+            throw new UserInternalServerErrorException("Error interno del servidor: " + e.getMessage());
         }
-
     }
 
     @Transactional
     public void logout(String refreshToken) {
-        keycloakAuth.logout(refreshToken);
+        try {
+            keycloakAuth.logout(refreshToken);
+        } catch (Exception ex) {
+            throw new UserInternalServerErrorException("Error al cerrar sesión: " + ex.getMessage());
+        }
     }
 
     @Transactional
-    public void sendEmailVerification(String keycloakId) {
+    public void sendEmailVerification(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("No existe un usuario con el email: " + email));
 
-        keycloakClient.sendEmailVerification(keycloakId);
+        if (user.getKeycloackId() == null || user.getKeycloackId().isBlank()) {
+            throw new UserBadRequestException("El usuario no tiene un keycloakId asociado");
+        }
+
+        keycloakClient.sendEmailVerification(user.getKeycloackId());
     }
 
     @Transactional
-    public void resetUserPassword(String keycloakId) {
-        keycloakClient.resetPassword(keycloakId);
+    public void resetPasswordByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("No existe un usuario con el email: " + email));
+
+        if (user.getKeycloackId() == null || user.getKeycloackId().isBlank()) {
+            throw new UserBadRequestException("El usuario no tiene un keycloakId asociado");
+        }
+
+        keycloakClient.resetPassword(user.getKeycloackId());
     }
 
     @Transactional
@@ -134,7 +130,8 @@ public class UserService {
 
     @Transactional
     public String getEmail(String email){
-        User user = userRepository.findByEmail(email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con email: " + email));
 
         return user.getEmail();
     }
