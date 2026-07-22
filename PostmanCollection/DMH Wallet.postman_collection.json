@@ -1,0 +1,366 @@
+{
+  "info": {
+    "_postman_id": "cd85997a-2c1a-4c85-80f5-98d80cf5d298",
+    "name": "DMH Wallet",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "36146276"
+  },
+  "item": [
+    {
+      "name": "ApiUser",
+      "item": [
+        {
+          "name": "keycloak connection test",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "client_credentials",
+                  "type": "text",
+                  "uuid": "831ee534-14fe-4819-bbaa-562b205dfb0e"
+                },
+                {
+                  "key": "client_id",
+                  "value": "api-user",
+                  "type": "text",
+                  "uuid": "311af17d-0b64-4df2-b79c-28d6deefe1c2"
+                },
+                {
+                  "key": "client_secret",
+                  "value": "n7ALWa05l4O8vNuP4Izw67i5fUPeW9mn",
+                  "type": "text",
+                  "uuid": "2f3134e7-abd2-4494-baa1-78daf50623c9"
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:8080/realms/dmh-realm/protocol/openid-connect/token",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "realms",
+                "dmh-realm",
+                "protocol",
+                "openid-connect",
+                "token"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "login",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"mrnaa1456@gmail.com\",\r\n  \"p\": \"segura\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/user/login?pws=segura",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "user",
+                "login"
+              ],
+              "query": [
+                {
+                  "key": "pws",
+                  "value": "segura"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJSSlpUVnNYUFNoQ2FicEQ4Z0laQ1JaRUc0NEtSMDFpY1RDYU9naTNMSkVnIn0.eyJleHAiOjE3NzQ3MTUwNzQsImlhdCI6MTc3NDcxNDc3NCwianRpIjoib25ydHJvOjk3OWYwNWE4LTAyYjMtNjBiMS1jOGFjLTQzZWJmNGMzMmE4MiIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvZG1oLXJlYWxtIiwiYXVkIjoiYWNjb3VudCIsInN1YiI6ImRiOTQ1ZGQyLTUyZDAtNDI2Mi1iNjg0LWVhM2VhYjViZGEwNCIsInR5cCI6IkJlYXJlciIsImF6cCI6ImFwaS11c2VyIiwic2lkIjoiVTBlLS1iQmJsWlFGclpUZ3VMTkd0Nzg1IiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJvZmZsaW5lX2FjY2VzcyIsImRlZmF1bHQtcm9sZXMtZG1oLXJlYWxtIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6InByb2ZpbGUgZW1haWwiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsIm5hbWUiOiJSb2RyaSBLaXJzY2giLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJtcm5hYTE0NTZAZ21haWwuY29tIiwiZ2l2ZW5fbmFtZSI6IlJvZHJpIiwiZmFtaWx5X25hbWUiOiJLaXJzY2giLCJlbWFpbCI6Im1ybmFhMTQ1NkBnbWFpbC5jb20ifQ.VUX77rskXVSm5XjTp78d-M3slOdQE88Kh49hyohNTdbt5uj-MjvbjVWgiKjP2xQwySCYwTOy_fNS2wZMlrt7WJ-5Ptnc77CBVXXPQQKax3QxMxjpbWRHqjrqThYbWl224e1gnJSkEGSXFZh7miSRAopJ1ts490GCT9em5-Ny-Y1pjb1hLTwVZMkwlj6j37l-KSblUvzkU2h-ChSVIktLcWxihYkdFlbrqVplP1Mc4fVrs36LsjQw540NBXgAmpC1iMvakBFtXfKcm4Bd_ZN3NowZEkYizL7juNihL0go_Wcjz4BBkmOHW9yV4MulILFOI_9lOdcETwcf7fMeAFqxQw",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Refresh-Token",
+                "value": "eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICIzMDhmYWRlNC04NDJhLTQwYTMtYTM4ZS1hYWEyZjIxNGEyYmIifQ.eyJleHAiOjE3NzQ3MTY1NzQsImlhdCI6MTc3NDcxNDc3NCwianRpIjoiNGUyMzY2NmUtZWMyZi05NjBkLTk5ODItZmFkNjE3OTJkN2YzIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9kbWgtcmVhbG0iLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvcmVhbG1zL2RtaC1yZWFsbSIsInN1YiI6ImRiOTQ1ZGQyLTUyZDAtNDI2Mi1iNjg0LWVhM2VhYjViZGEwNCIsInR5cCI6IlJlZnJlc2giLCJhenAiOiJhcGktdXNlciIsInNpZCI6IlUwZS0tYkJibFpRRnJaVGd1TE5HdDc4NSIsInNjb3BlIjoicHJvZmlsZSBiYXNpYyBhY3Igcm9sZXMgd2ViLW9yaWdpbnMgZW1haWwgc2VydmljZV9hY2NvdW50In0.r2Qmeia2basNP-0PcJ5vr4VXLzfINQbd1hOaVpQO0cBFS1Qz8SnWVUwMeb0kzNL4Hhb7sV0iTCpwU-p_X17FLg",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/user/logout",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "user",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "send-email-verification",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/user/d0c7a40e-37e8-4590-8a8f-4fcf20d6abbb/send-verification",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "user",
+                "d0c7a40e-37e8-4590-8a8f-4fcf20d6abbb",
+                "send-verification"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "reset-password",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/user/d0c7a40e-37e8-4590-8a8f-4fcf20d6abbb/reset-password",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "user",
+                "d0c7a40e-37e8-4590-8a8f-4fcf20d6abbb",
+                "reset-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"telefono\": \"7849101\",\r\n    \"dni\": \"37469221\",\r\n    \"email\": \"hechoamano.luky@gmail.com\",\r\n    \"pwd\": \"segura7\",\r\n    \"nombre\": \"Nahuel\",\r\n    \"apellido\": \"Kirsch\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/user/register",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "user",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "ApiGateway",
+      "item": [
+        {
+          "name": "login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"mrnaa1456@gmail.com\",\r\n  \"pwd\": \"segura\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8083/api/user/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "api",
+                "user",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "send-email-verification",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8083/api/user/d0c7a40e-37e8-4590-8a8f-4fcf20d6abbb/send-verification",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "api",
+                "user",
+                "d0c7a40e-37e8-4590-8a8f-4fcf20d6abbb",
+                "send-verification"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "reset-password",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8083/api/user/d0c7a40e-37e8-4590-8a8f-4fcf20d6abbb/reset-password",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "api",
+                "user",
+                "d0c7a40e-37e8-4590-8a8f-4fcf20d6abbb",
+                "reset-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"telefono\": \"7849001\",\r\n    \"dni\": \"37469229\",\r\n    \"email\": \"hechoamano.luk@gmail.com\",\r\n    \"pwd\": \"segura7\",\r\n    \"nombre\": \"Nahuel\",\r\n    \"apellido\": \"Kirsch\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8083/api/user/register",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "api",
+                "user",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJSSlpUVnNYUFNoQ2FicEQ4Z0laQ1JaRUc0NEtSMDFpY1RDYU9naTNMSkVnIn0.eyJleHAiOjE3NzcyNDY0MDEsImlhdCI6MTc3NzI0NjEwMSwianRpIjoib25ydHJvOjNjZWUwNTBjLWM1Y2MtNzFjNi05NGI5LWViZDZjMWY5N2RiOCIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvZG1oLXJlYWxtIiwiYXVkIjoiYWNjb3VudCIsInN1YiI6ImRiOTQ1ZGQyLTUyZDAtNDI2Mi1iNjg0LWVhM2VhYjViZGEwNCIsInR5cCI6IkJlYXJlciIsImF6cCI6ImFwaS11c2VyIiwic2lkIjoiTFNKWi1vZzdUMEJpdDk1REx6MmptY2FjIiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJvZmZsaW5lX2FjY2VzcyIsImRlZmF1bHQtcm9sZXMtZG1oLXJlYWxtIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6InByb2ZpbGUgZW1haWwiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsIm5hbWUiOiJSb2RyaSBLaXJzY2giLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJtcm5hYTE0NTZAZ21haWwuY29tIiwiZ2l2ZW5fbmFtZSI6IlJvZHJpIiwiZmFtaWx5X25hbWUiOiJLaXJzY2giLCJlbWFpbCI6Im1ybmFhMTQ1NkBnbWFpbC5jb20ifQ.kOguRXDtg2m3jYdfrJuP2FAmjtcxkl-1G5ih5FZiI4NiutIIxGLTRobX3awxR7unlHRBgG2dWpzgPX4zOYbNXWk7Drg6FNoBj69RF0LAq9wyXkH3hAr0BFTsF2znPizMRmlZS6502RQXUEYrtqmOOWxso2iEchRObv3JDtaFrTqB_TIzQxfZcbzKBqylet1F-I91mK1irPwdQPhdOq9sSc9dow1rcG8rLylyJEYv2k47PJyb9Ue99m7F19wJy1pDNieGAtIwldgntBadam0Z7qJRCV1or3GFpAnl0gaFb3CDoq3Du4vUr3o0mNrlnMO_QPdzA_kT9zL_Pjxwn35XVQ",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Refresh-Token",
+                "value": "eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICIzMDhmYWRlNC04NDJhLTQwYTMtYTM4ZS1hYWEyZjIxNGEyYmIifQ.eyJleHAiOjE3NzcyNDc5MDEsImlhdCI6MTc3NzI0NjEwMSwianRpIjoiMmU5NDQ5NTQtMjg5Zi05MzMxLTM1YjctNTZkM2M1MmNmOTVmIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9kbWgtcmVhbG0iLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvcmVhbG1zL2RtaC1yZWFsbSIsInN1YiI6ImRiOTQ1ZGQyLTUyZDAtNDI2Mi1iNjg0LWVhM2VhYjViZGEwNCIsInR5cCI6IlJlZnJlc2giLCJhenAiOiJhcGktdXNlciIsInNpZCI6IkxTSlotb2c3VDBCaXQ5NURMejJqbWNhYyIsInNjb3BlIjoicHJvZmlsZSBiYXNpYyBhY3Igcm9sZXMgd2ViLW9yaWdpbnMgZW1haWwgc2VydmljZV9hY2NvdW50In0.YP54M5xXz-PwrjGorY26KYSXMuvnfFLC6dzVIYQ6p2j8BbbrOYQkgGOSsx5KlTxGEOISdfjTS33ybLDSEpzIiA",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8083/api/user/logout",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "api",
+                "user",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

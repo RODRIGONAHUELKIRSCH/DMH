@@ -57,7 +57,6 @@ public class ApiUserControllerTest {
     private KeycloakAuth keycloakAuth;
 
     private String baseUri;
-    private String testKeycloakId;
     private String testEmail;
     private String testPassword;
     private User user;
@@ -69,7 +68,7 @@ public class ApiUserControllerTest {
         Mockito.clearInvocations(userService);
 
         baseUri = "http://localhost:" + port + "/api/user";
-        testKeycloakId = UUID.randomUUID().toString();
+        String testKeycloakId = UUID.randomUUID().toString();
         testEmail = "john.doe." + System.currentTimeMillis() + "@example.com";
         testPassword = "Password123!";
 
@@ -250,26 +249,57 @@ public class ApiUserControllerTest {
     class EmailVerificationEndpointTests {
 
         @Test
-        @DisplayName("POST /{keycloakId}/send-verification - should send verification email")
+        @DisplayName("POST /send-verification?email=... - should send verification email")
         void shouldSendVerificationEmail() {
-            doNothing().when(userService).sendEmailVerification(testKeycloakId);
+            doNothing().when(userService).sendEmailVerification(testEmail);
 
             Response response = given()
+                    .param("email", testEmail)
                     .when()
-                    .post(baseUri + "/" + testKeycloakId + "/send-verification");
+                    .post(baseUri + "/send-verification");
 
             assertEquals(200, response.statusCode());
+            verify(userService).sendEmailVerification(testEmail);
         }
 
         @Test
-        @DisplayName("POST /{keycloakId}/send-verification - should return 500 when service fails")
-        void shouldReturn500WhenKeycloakFails() {
+        @DisplayName("POST /send-verification?email=... - should return 404 when user not found")
+        void shouldReturn404WhenUserNotFoundForVerification() {
+            doThrow(new UserNotFoundException("Usuario no encontrado con email: " + testEmail))
+                    .when(userService).sendEmailVerification(anyString());
+
+            Response response = given()
+                    .param("email", "nonexistent@example.com")
+                    .when()
+                    .post(baseUri + "/send-verification");
+
+            assertEquals(404, response.statusCode());
+        }
+
+        @Test
+        @DisplayName("POST /send-verification?email=... - should return 400 when user has no keycloakId")
+        void shouldReturn400WhenUserHasNoKeycloakIdForVerification() {
+            doThrow(new UserBadRequestException("El usuario no tiene un keycloakId asociado"))
+                    .when(userService).sendEmailVerification(anyString());
+
+            Response response = given()
+                    .param("email", testEmail)
+                    .when()
+                    .post(baseUri + "/send-verification");
+
+            assertEquals(400, response.statusCode());
+        }
+
+        @Test
+        @DisplayName("POST /send-verification?email=... - should return 500 when keycloak fails")
+        void shouldReturn500WhenKeycloakFailsForVerification() {
             doThrow(new UserInternalServerErrorException("Keycloak error"))
                     .when(userService).sendEmailVerification(anyString());
 
             Response response = given()
+                    .param("email", testEmail)
                     .when()
-                    .post(baseUri + "/" + testKeycloakId + "/send-verification");
+                    .post(baseUri + "/send-verification");
 
             assertEquals(500, response.statusCode());
         }
@@ -280,26 +310,57 @@ public class ApiUserControllerTest {
     class ResetPasswordEndpointTests {
 
         @Test
-        @DisplayName("POST /{keycloakId}/reset-password - should reset password successfully")
+        @DisplayName("POST /reset-password?email=... - should reset password successfully")
         void shouldResetPasswordSuccessfully() {
-            doNothing().when(userService).resetUserPassword(testKeycloakId);
+            doNothing().when(userService).resetPasswordByEmail(testEmail);
 
             Response response = given()
+                    .param("email", testEmail)
                     .when()
-                    .post(baseUri + "/" + testKeycloakId + "/reset-password");
+                    .post(baseUri + "/reset-password");
 
             assertEquals(200, response.statusCode());
+            verify(userService).resetPasswordByEmail(testEmail);
         }
 
         @Test
-        @DisplayName("POST /{keycloakId}/reset-password - should return 500 when service fails")
-        void shouldReturn500WhenKeycloakFails() {
-            doThrow(new UserInternalServerErrorException("Keycloak error"))
-                    .when(userService).resetUserPassword(anyString());
+        @DisplayName("POST /reset-password?email=... - should return 404 when user not found")
+        void shouldReturn404WhenUserNotFoundForReset() {
+            doThrow(new UserNotFoundException("Usuario no encontrado con email: " + testEmail))
+                    .when(userService).resetPasswordByEmail(anyString());
 
             Response response = given()
+                    .param("email", "nonexistent@example.com")
                     .when()
-                    .post(baseUri + "/" + testKeycloakId + "/reset-password");
+                    .post(baseUri + "/reset-password");
+
+            assertEquals(404, response.statusCode());
+        }
+
+        @Test
+        @DisplayName("POST /reset-password?email=... - should return 400 when user has no keycloakId")
+        void shouldReturn400WhenUserHasNoKeycloakIdForReset() {
+            doThrow(new UserBadRequestException("El usuario no tiene un keycloakId asociado"))
+                    .when(userService).resetPasswordByEmail(anyString());
+
+            Response response = given()
+                    .param("email", testEmail)
+                    .when()
+                    .post(baseUri + "/reset-password");
+
+            assertEquals(400, response.statusCode());
+        }
+
+        @Test
+        @DisplayName("POST /reset-password?email=... - should return 500 when keycloak fails")
+        void shouldReturn500WhenKeycloakFailsForReset() {
+            doThrow(new UserInternalServerErrorException("Keycloak error"))
+                    .when(userService).resetPasswordByEmail(anyString());
+
+            Response response = given()
+                    .param("email", testEmail)
+                    .when()
+                    .post(baseUri + "/reset-password");
 
             assertEquals(500, response.statusCode());
         }

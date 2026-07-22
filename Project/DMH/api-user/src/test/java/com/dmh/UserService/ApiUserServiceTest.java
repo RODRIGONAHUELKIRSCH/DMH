@@ -241,27 +241,53 @@ public class ApiUserServiceTest {
     class EmailVerificationTests {
 
         @Test
-        @DisplayName("Should send email verification successfully")
+        @DisplayName("Should send email verification successfully by email")
         void ShouldSendEmailVerificationSuccessfully() {
             // given
+            when(userRepository.findByEmail(testEmail)).thenReturn(Optional.of(user));
             doNothing().when(keycloakClient).sendEmailVerification(testKeycloakId);
 
             // when
-            userService.sendEmailVerification(testKeycloakId);
+            userService.sendEmailVerification(testEmail);
 
             // then
+            verify(userRepository).findByEmail(testEmail);
             verify(keycloakClient).sendEmailVerification(testKeycloakId);
         }
 
         @Test
-        @DisplayName("Should throw exception when sending email verification fails")
-        void ShouldThrowExceptionWhenSendingEmailVerificationFails() {
+        @DisplayName("Should throw UserNotFoundException when user does not exist")
+        void ShouldThrowUserNotFoundExceptionWhenUserDoesNotExistForVerification() {
             // given
+            when(userRepository.findByEmail(testEmail)).thenReturn(Optional.empty());
+
+            // when & then
+            assertThrows(UserNotFoundException.class, () -> userService.sendEmailVerification(testEmail));
+            verify(keycloakClient, never()).sendEmailVerification(anyString());
+        }
+
+        @Test
+        @DisplayName("Should throw UserBadRequestException when user has no keycloakId")
+        void ShouldThrowUserBadRequestExceptionWhenUserHasNoKeycloakId() {
+            // given
+            user.setKeycloackId(null);
+            when(userRepository.findByEmail(testEmail)).thenReturn(Optional.of(user));
+
+            // when & then
+            assertThrows(UserBadRequestException.class, () -> userService.sendEmailVerification(testEmail));
+            verify(keycloakClient, never()).sendEmailVerification(anyString());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when keycloak fails sending verification")
+        void ShouldThrowExceptionWhenKeycloakFails() {
+            // given
+            when(userRepository.findByEmail(testEmail)).thenReturn(Optional.of(user));
             doThrow(new RuntimeException("Email service unavailable"))
                     .when(keycloakClient).sendEmailVerification(testKeycloakId);
 
             // when & then
-            assertThrows(RuntimeException.class, () -> userService.sendEmailVerification(testKeycloakId));
+            assertThrows(RuntimeException.class, () -> userService.sendEmailVerification(testEmail));
         }
     }
 
@@ -270,27 +296,53 @@ public class ApiUserServiceTest {
     class PasswordResetTests {
 
         @Test
-        @DisplayName("Should reset password successfully")
+        @DisplayName("Should reset password successfully by email")
         void ShouldResetPasswordSuccessfully() {
             // given
+            when(userRepository.findByEmail(testEmail)).thenReturn(Optional.of(user));
             doNothing().when(keycloakClient).resetPassword(testKeycloakId);
 
             // when
-            userService.resetUserPassword(testKeycloakId);
+            userService.resetPasswordByEmail(testEmail);
 
             // then
+            verify(userRepository).findByEmail(testEmail);
             verify(keycloakClient).resetPassword(testKeycloakId);
         }
 
         @Test
-        @DisplayName("Should throw exception when password reset fails")
-        void ShouldThrowExceptionWhenPasswordResetFails() {
+        @DisplayName("Should throw UserNotFoundException when user does not exist")
+        void ShouldThrowUserNotFoundExceptionWhenUserDoesNotExistForReset() {
             // given
+            when(userRepository.findByEmail(testEmail)).thenReturn(Optional.empty());
+
+            // when & then
+            assertThrows(UserNotFoundException.class, () -> userService.resetPasswordByEmail(testEmail));
+            verify(keycloakClient, never()).resetPassword(anyString());
+        }
+
+        @Test
+        @DisplayName("Should throw UserBadRequestException when user has no keycloakId")
+        void ShouldThrowUserBadRequestExceptionWhenUserHasNoKeycloakIdForReset() {
+            // given
+            user.setKeycloackId("");
+            when(userRepository.findByEmail(testEmail)).thenReturn(Optional.of(user));
+
+            // when & then
+            assertThrows(UserBadRequestException.class, () -> userService.resetPasswordByEmail(testEmail));
+            verify(keycloakClient, never()).resetPassword(anyString());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when keycloak fails resetting password")
+        void ShouldThrowExceptionWhenKeycloakResetFails() {
+            // given
+            when(userRepository.findByEmail(testEmail)).thenReturn(Optional.of(user));
             doThrow(new RuntimeException("Password reset failed"))
                     .when(keycloakClient).resetPassword(testKeycloakId);
 
             // when & then
-            assertThrows(RuntimeException.class, () -> userService.resetUserPassword(testKeycloakId));
+            assertThrows(RuntimeException.class, () -> userService.resetPasswordByEmail(testEmail));
         }
     }
 
