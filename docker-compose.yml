@@ -1,0 +1,142 @@
+# ============================================================
+# Docker Compose para DMH (Stack parcial - Solo 3 microservicios)
+# Servicios incluidos:
+#   - postgres        (dependencia de api-user)
+#   - api-eureka      (Service Discovery - puerto 8761)
+#   - api-user        (Microservicio de usuarios - puerto 8081)
+#   - api-gateway     (API Gateway - puerto 8083)
+# ============================================================
+
+version: "3.9"
+
+services:
+
+  # -------------------------------------------------------
+  # PostgreSQL - Base de datos para api-user
+  # -------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: dmh-postgres
+    environment:
+      POSTGRES_DB: dmh
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dmh"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dmh-network
+
+  # -------------------------------------------------------
+  # api-eureka - Service Discovery (debe arrancar PRIMERO)
+  # -------------------------------------------------------
+  api-eureka:
+    build:
+      context: ./Project/DMH
+      dockerfile: api-eureka/Dockerfile
+    image: dmh/api-eureka:0.0.1-SNAPSHOT
+    container_name: dmh-api-eureka
+    ports:
+      - "8761:8761"
+    environment:
+      SERVER_PORT: 8761
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - dmh-network
+
+  # -------------------------------------------------------
+  # api-user - Microservicio de usuarios
+  # Depende de: postgres, api-eureka
+  # -------------------------------------------------------
+  api-user:
+    build:
+      context: ./Project/DMH
+      dockerfile: api-user/Dockerfile
+    image: dmh/api-user:0.0.1-SNAPSHOT
+    container_name: dmh-api-user
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/dmh
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://api-eureka:8761/eureka
+      EUREKA_CLIENT_REGISTER_WITH_EUREKA: "true"
+      EUREKA_CLIENT_FETCH_REGISTRY: "true"
+      # Keycloak (opcional - comentar si no se está usando)
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://host.docker.internal:8080/realms/dmh-realm
+      KEYCLOAK_SERVER_URL: http://host.docker.internal:8080
+      KEYCLOAK_REALM: dmh-realm
+      KEYCLOAK_CLIENT_ID: api-user
+      KEYCLOAK_CLIENT_SECRET: n7ALWa05l4O8vNuP4Izw67i5fUPeW9mn
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api-eureka:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - dmh-network
+
+  # -------------------------------------------------------
+  # api-gateway - API Gateway
+  # Depende de: api-eureka, api-user
+  # -------------------------------------------------------
+  api-gateway:
+    build:
+      context: ./Project/DMH
+      dockerfile: api-gateway/Dockerfile
+    image: dmh/api-gateway:0.0.1-SNAPSHOT
+    container_name: dmh-api-gateway
+    ports:
+      - "8083:8083"
+    environment:
+      SERVER_PORT: 8083
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://api-eureka:8761/eureka
+      EUREKA_CLIENT_REGISTER_WITH_EUREKA: "true"
+      EUREKA_CLIENT_FETCH_REGISTRY: "true"
+      SPRING_CLOUD_LOADBALANCER_ENABLED: "true"
+    depends_on:
+      api-eureka:
+        condition: service_started
+      api-user:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - dmh-network
+
+# -------------------------------------------------------
+# Redes y volúmenes
+# -------------------------------------------------------
+networks:
+  dmh-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
