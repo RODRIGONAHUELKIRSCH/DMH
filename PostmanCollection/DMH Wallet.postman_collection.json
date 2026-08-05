@@ -146,7 +146,7 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "http://localhost:8081/api/user/d0c7a40e-37e8-4590-8a8f-4fcf20d6abbb/send-verification",
+              "raw": "http://localhost:8081/api/user/send-verification?email=mrnaaaa@gmail.com",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -155,8 +155,13 @@
               "path": [
                 "api",
                 "user",
-                "d0c7a40e-37e8-4590-8a8f-4fcf20d6abbb",
                 "send-verification"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "mrnaaaa@gmail.com"
+                }
               ]
             }
           },
@@ -168,7 +173,7 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "http://localhost:8081/api/user/d0c7a40e-37e8-4590-8a8f-4fcf20d6abbb/reset-password",
+              "raw": "http://localhost:8081/api/user/reset-password?email=rodrigon.kirsch@gmail.com",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -177,8 +182,13 @@
               "path": [
                 "api",
                 "user",
-                "d0c7a40e-37e8-4590-8a8f-4fcf20d6abbb",
                 "reset-password"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "rodrigon.kirsch@gmail.com"
+                }
               ]
             }
           },
@@ -255,7 +265,7 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "http://localhost:8083/api/user/d0c7a40e-37e8-4590-8a8f-4fcf20d6abbb/send-verification",
+              "raw": "http://localhost:8083/api/user/send-verification?email=rodrigon.kirsch@gmail.com",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -264,8 +274,13 @@
               "path": [
                 "api",
                 "user",
-                "d0c7a40e-37e8-4590-8a8f-4fcf20d6abbb",
                 "send-verification"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "rodrigon.kirsch@gmail.com"
+                }
               ]
             }
           },
@@ -277,7 +292,7 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "http://localhost:8083/api/user/d0c7a40e-37e8-4590-8a8f-4fcf20d6abbb/reset-password",
+              "raw": "http://localhost:8083/api/user/reset-password?email=rodrigon.kirsch@gmail.com",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -286,8 +301,13 @@
               "path": [
                 "api",
                 "user",
-                "d0c7a40e-37e8-4590-8a8f-4fcf20d6abbb",
                 "reset-password"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "rodrigon.kirsch@gmail.com"
+                }
               ]
             }
           },

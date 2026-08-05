@@ -32,25 +32,144 @@ real-world constraints and banking rules.
 - POST /api/user/{keycloakId}/send-verification - Send verification email
 - POST /api/user/{keycloakId}/reset-password - Trigger password reset
 
+## How to Run the Application
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/RODRIGONAHUELKIRSCH/DMH.git
+cd DMH
+```
+
+### Prerequisites
+
+Make sure you have the following installed:
+
+- [Docker](https://www.docker.com/get-started) and Docker Compose
+- [Java 25 JDK](https://www.oracle.com/java/technologies/downloads/)
+- [Maven 3.9+](https://maven.apache.org/download.cgi) (only required for local development / running tests)
+- [Git](https://git-scm.com/downloads)
+- [Keycloak](https://www.keycloak.org/downloads) — used as the identity provider for `api-user`
+
+### 1.1. Configure Keycloak (first time only)
+
+The `api-user` microservice delegates authentication to Keycloak. The first time
+you set up the environment you **must** configure Keycloak to persist its data
+in a dedicated PostgreSQL database instead of the default embedded H2 database
+(which can be lost or corrupted between restarts).
+
+The configuration script is provided at
+[`temp-guides/keycloack-config.txt`](temp-guides/keycloack-config.txt). It
+exports the environment variables that point Keycloak to a PostgreSQL
+database (`keycloak_db` on `localhost:5432`) and then starts Keycloak in
+optimized mode.
+
+Run it the first time (from the directory where your Keycloak `kc.bat` is
+located, or adjust the path accordingly):
+
+**Windows (cmd):**
+
+```cmd
+temp-guides\keycloack-config.txt
+```
+
+Or copy the contents of [`temp-guides/keycloack-config.txt`](temp-guides/keycloack-config.txt)
+into your terminal to execute them line by line:
+
+```cmd
+set KC_DB=postgres
+set KC_DB_URL=jdbc:postgresql://localhost:5432/keycloak_db
+set KC_DB_USERNAME=keycloak_user
+set KC_DB_PASSWORD=1234
+
+kc.bat start --http-enabled=true --hostname-strict=false --optimized
+```
+
+> Make sure the `keycloak_db` database and the `keycloak_user` role already
+> exist in your local PostgreSQL before running the script. This avoids relying
+> on Keycloak's default in-memory database, which can be lost or corrupted
+> between restarts.
+
+After Keycloak is up, create the `dmh-realm` realm and the `api-user` client
+(credentials must match the ones declared in `docker-compose.yml`).
+
+### 2. Build and run with Docker Compose
+
+The project ships a `docker-compose.yml` that orchestrates the full stack
+(`postgres`, `api-eureka`, `api-user`, `api-gateway`).
+
+```bash
+docker compose up --build
+```
+
+This will:
+- Build the Docker images for `api-eureka`, `api-user` and `api-gateway`.
+- Start a PostgreSQL instance and wait until it is healthy.
+- Start the Eureka service discovery (`http://localhost:8761`).
+- Start the `api-user` microservice (`http://localhost:8081`).
+- Start the `api-gateway` (`http://localhost:8083`).
+
+To stop the stack:
+
+```bash
+docker compose down
+```
+
+To stop the stack and remove persisted data (volumes):
+
+```bash
+docker compose down -v
+```
+
+### 3. Verify the stack is up
+
+Once the containers are running, you can check:
+
+- Eureka dashboard: http://localhost:8761
+- api-user health: http://localhost:8081/actuator/health
+- api-gateway health: http://localhost:8083/actuator/health
+
+---
+
 ## Testing
 
-The project has automated tests that run with:
+### Running the tests
 
-mvn test
+The project has automated tests for the `api-user` microservice. The easiest way
+to run **all** the tests is to execute the [`ApiUserControllerTest`](Project/DMH/api-user/src/test/java/com/dmh/UserController/ApiUserControllerTest.java:1) suite, which is the integration suite that triggers the full
+test suite (service unit tests + controller integration tests + context tests).`
 
-Coverage:
-- Unit tests in ApiUserServiceTest.java
-- Integration tests in ApiAiUserControllerTest.java
-- 1 context test in ApiUserApplicationTests.java
+Test coverage included in this microservice:
 
-Manual and exploratory testing docs:
+- Unit tests in [`ApiUserServiceTest`](Project/DMH/api-user/src/test/java/com/dmh/UserService/ApiUserServiceTest.java:1)
+- Integration tests in [`ApiUserControllerTest`](Project/DMH/api-user/src/test/java/com/dmh/UserController/ApiUserControllerTest.java:1)
+- 1 context test in [`ApiUserApplicationTests`](Project/DMH/api-user/src/test/java/com/dmh/ApiUserApplicationTests.java:1)
 
+### Test documentation
 
-Postman collection:
-https://research-specialist-54290331-s-team.postman.co/workspace/My-Workspace~1ab275e5-9ebd-493c-83b5-0f6c973eb246/collection/36146276-cd85997a-2c1a-4c85-80f5-98d80cf5d298&action=share&source=copy-link&creator=36146276
+The general testing strategy is documented in [`TestDocs/api-user/01-plan-testing.md`](TestDocs/api-user/01-plan-testing.md).
+This document is split into two separate technical files for implementation details:
 
+- Testing with **JUnit + Mockito** → [`TestDocs/api-user/02-junit-mockito-tests.md`](TestDocs/api-user/02-junit-mockito-tests.md)
+- Testing with **RestAssured** → [`TestDocs/api-user/03-restassured-tests.md`](TestDocs/api-user/03-restassured-tests.md)
 
+### Manual testing
 
+The exploratory / manual testing for the `api-user` microservice is documented in
+[`TestDocs/api-user/ManualTestingApiUser.docx`](TestDocs/api-user/ManualTestingApiUser.docx).
+
+### Postman collection
+
+A Postman collection is provided to exercise the endpoints manually.
+
+- **Download link:** https://research-specialist-54290331-s-team.postman.co/workspace/My-Workspace~1ab275e5-9ebd-493c-83b5-0f6c973eb246/collection/36146276-cd85997a-2c1a-4c85-80f5-98d80cf5d298&action=share&source=copy-link&creator=36146276
+- **JSON file (offline):** [`PostmanCollection/DMH Wallet.postman_collection.json`](PostmanCollection/DMH%20Wallet.postman_collection.json)
+
+You can import the JSON file directly into Postman via
+*File → Import → Upload Files* and select the file from the `PostmanCollection/`
+folder.
+
+## Architecture
 ##  Entity - Relation Diagram
 ![Diagrams/MER-DMH.png](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DER-DMH.png)
 
