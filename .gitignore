@@ -1,0 +1,82 @@
+# ============================================================
+# DMH .gitignore
+# ------------------------------------------------------------
+# General OS / IDE clutter
+# ============================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs / editors
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+*.swp
+*.swo
+
+# ============================================================
+# Build outputs
+# ============================================================
+target/
+build/
+out/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+# ============================================================
+# Secrets / local env files
+# ------------------------------------------------------------
+# api-user.env holds real credentials (DB passwords, Keycloak
+# admin password, client-secret, etc.) and MUST NOT be
+# committed.
+# ============================================================
+api-user.env
+.env
+.env.local
+.env.*.local
+*.env.local
+
+# Also ignore the realm-export.json copy that lives at the
+# repo root during local dev (the canonical one is under
+# Project/DMH/keycloak/, which IS committed).
+/realm-export.json
+
+# ============================================================
+# Maven
+# ============================================================
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ============================================================
+# Logs / temp
+# ============================================================
+*.log
+logs/
+tmp/
+temp/
+
+# ============================================================
+# Test / coverage
+# ============================================================
+coverage/
+*.lcov
+*.cover
+.nyc_output/
+
+# ============================================================
+# Misc
+# ============================================================
+*.bak
+*.tmp
+*.swp
+*.orig

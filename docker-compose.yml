@@ -1,10 +1,14 @@
 # ============================================================
-# Docker Compose para DMH (Stack parcial - Solo 3 microservicios)
-# Servicios incluidos:
-#   - postgres        (dependencia de api-user)
-#   - api-eureka      (Service Discovery - puerto 8761)
-#   - api-user        (Microservicio de usuarios - puerto 8081)
-#   - api-gateway     (API Gateway - puerto 8083)
+# Docker Compose for DMH
+# ------------------------------------------------------------
+# Services included:
+#   - postgres      (api-user DB)
+#   - keycloak-db   (Keycloak DB)
+#   - keycloak      (Identity Provider)
+#   - api-eureka    (Service Discovery - port 8761)
+#   - api-user      (User microservice - port 8081)
+#   - api-gateway   (API Gateway - port 8083)
+#
 # ============================================================
 
 version: "3.9"
@@ -12,21 +16,23 @@ version: "3.9"
 services:
 
   # -------------------------------------------------------
-  # PostgreSQL - Base de datos para api-user
+  # PostgreSQL - Database for api-user
   # -------------------------------------------------------
   postgres:
     image: postgres:16-alpine
     container_name: dmh-postgres
+    env_file:
+      - api-user.env
     environment:
-      POSTGRES_DB: dmh
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d dmh"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,7 +40,59 @@ services:
       - dmh-network
 
   # -------------------------------------------------------
-  # api-eureka - Service Discovery (debe arrancar PRIMERO)
+  # Keycloak DB - Dedicated database for Keycloak
+  # -------------------------------------------------------
+  keycloak-db:
+    image: postgres:16-alpine
+    container_name: dmh-keycloak-db
+    env_file:
+      - api-user.env
+    environment:
+      POSTGRES_DB: ${KEYCLOAK_DB}
+      POSTGRES_USER: ${KEYCLOAK_DB_USER}
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KEYCLOAK_DB_USER} -d ${KEYCLOAK_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dmh-network
+
+  # -------------------------------------------------------
+  # Keycloak - Identity Provider
+  #   - Starts with its own PostgreSQL DB.
+  #   - Auto-imports the realm and clients from
+  #     `Project/DMH/keycloak/realm-export.json`.
+  # -------------------------------------------------------
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.5.6
+    container_name: dmh-keycloak
+    command: ["start-dev", "--import-realm"]
+    env_file:
+      - api-user.env
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${KEYCLOAK_DB}
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USER}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "${KEYCLOAK_HTTP_PORT:-8080}:8080"
+    volumes:
+      - ./Project/DMH/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    networks:
+      - dmh-network
+
+  # -------------------------------------------------------
+  # api-eureka - Service Discovery (must start FIRST)
   # -------------------------------------------------------
   api-eureka:
     build:
@@ -56,8 +114,8 @@ services:
       - dmh-network
 
   # -------------------------------------------------------
-  # api-user - Microservicio de usuarios
-  # Depende de: postgres, api-eureka
+  # api-user - User microservice
+  # Depends on: postgres, keycloak, api-eureka
   # -------------------------------------------------------
   api-user:
     build:
@@ -65,28 +123,30 @@ services:
       dockerfile: api-user/Dockerfile
     image: dmh/api-user:0.0.1-SNAPSHOT
     container_name: dmh-api-user
+    env_file:
+      - api-user.env
     ports:
       - "8081:8081"
     environment:
       SERVER_PORT: 8081
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/dmh
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: "true"
-      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
-      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://api-eureka:8761/eureka
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE}
       EUREKA_CLIENT_REGISTER_WITH_EUREKA: "true"
       EUREKA_CLIENT_FETCH_REGISTRY: "true"
-      # Keycloak (opcional - comentar si no se está usando)
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://host.docker.internal:8080/realms/dmh-realm
-      KEYCLOAK_SERVER_URL: http://host.docker.internal:8080
-      KEYCLOAK_REALM: dmh-realm
-      KEYCLOAK_CLIENT_ID: api-user
-      KEYCLOAK_CLIENT_SECRET: n7ALWa05l4O8vNuP4Izw67i5fUPeW9mn
+      # The issuer-uri must use the Docker service name `keycloak` (not localhost)
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI}
+      KEYCLOAK_SERVER_URL: http://keycloak:${KEYCLOAK_HTTP_PORT:-8080}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
     depends_on:
       postgres:
         condition: service_healthy
+      keycloak:
+        condition: service_started
       api-eureka:
         condition: service_started
     healthcheck:
@@ -100,7 +160,7 @@ services:
 
   # -------------------------------------------------------
   # api-gateway - API Gateway
-  # Depende de: api-eureka, api-user
+  # Depends on: api-eureka, api-user
   # -------------------------------------------------------
   api-gateway:
     build:
@@ -131,7 +191,7 @@ services:
       - dmh-network
 
 # -------------------------------------------------------
-# Redes y volúmenes
+# Networks and volumes
 # -------------------------------------------------------
 networks:
   dmh-network:
@@ -139,4 +199,6 @@ networks:
 
 volumes:
   postgres_data:
+    driver: local
+  keycloak_db_data:
     driver: local

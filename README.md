@@ -11,7 +11,7 @@ real-world constraints and banking rules.
 - Java 25 jdk
 - Maven 3.9.12
 - Docker
-- Keycloak
+- Keycloak 26.5.6 (running in Docker from `docker-compose.yml`)
 - PostgreSQL
 - Spring Boot 4.0
 
@@ -49,65 +49,59 @@ Make sure you have the following installed:
 - [Java 25 JDK](https://www.oracle.com/java/technologies/downloads/)
 - [Maven 3.9+](https://maven.apache.org/download.cgi) (only required for local development / running tests)
 - [Git](https://git-scm.com/downloads)
-- [Keycloak](https://www.keycloak.org/downloads) — used as the identity provider for `api-user`
 
-### 1.1. Configure Keycloak (first time only)
+### 2. Configure the environment file (`api-user.env`)
 
-The `api-user` microservice delegates authentication to Keycloak. The first time
-you set up the environment you **must** configure Keycloak to persist its data
-in a dedicated PostgreSQL database instead of the default embedded H2 database
-(which can be lost or corrupted between restarts).
+Every secret (DB passwords, Keycloak `client-secret`, admin
+password, etc.) is read from environment variables and is never
+committed. The file `api-user.env` at the repo root already has the
+real values for this project; edit it in place if you need to rotate
+any of them. Make sure `KEYCLOAK_CLIENT_SECRET` matches the `secret`
+of the `api-user` client that lives inside
+`Project/DMH/keycloak/realm-export.json`.
 
-The configuration script is provided at
-[`temp-guides/keycloack-config.txt`](temp-guides/keycloack-config.txt). It
-exports the environment variables that point Keycloak to a PostgreSQL
-database (`keycloak_db` on `localhost:5432`) and then starts Keycloak in
-optimized mode.
+### 3. Export the realm (first time only) from your local Keycloak
 
-Run it the first time (from the directory where your Keycloak `kc.bat` is
-located, or adjust the path accordingly):
+> **Important:** this step runs against your **local Keycloak
+> install** (`kc.bat start` pointed at the `keycloak_db` database),
+> **not** against the Keycloak that runs inside Docker. The idea is
+> to configure the realm once in your real Keycloak instance and
+> then export it to a JSON file that Docker will replay on every
+> `docker compose up`.
 
-**Windows (cmd):**
+The full step-by-step is in
+[`Project/DMH/keycloak/export-realm.md`](Project/DMH/keycloak/export-realm.md).
+Quick summary:
 
-```cmd
-temp-guides\keycloack-config.txt
-```
+1. Start your local Keycloak following
+   [`temp-guides/keycloack-config.txt`](temp-guides/keycloack-config.txt)
+   (exports the variables and runs `kc.bat start ...` against the
+   Postgres `keycloak_db`).
+2. Open http://localhost:8080 with the admin user and create the
+   **`dmh-realm`** realm and the **`api-user`** client (set
+   *Client authentication* to ON so it has a `client-secret`).
+3. Export the realm from the UI (*Realm settings → Action →
+   Partial export*) or via the Admin REST API (see the document).
+4. Save the JSON as `Project/DMH/keycloak/realm-export.json`. Make
+   sure the `client-secret` inside the JSON matches
+   `KEYCLOAK_CLIENT_SECRET` in `api-user.env`.
 
-Or copy the contents of [`temp-guides/keycloack-config.txt`](temp-guides/keycloack-config.txt)
-into your terminal to execute them line by line:
-
-```cmd
-set KC_DB=postgres
-set KC_DB_URL=jdbc:postgresql://localhost:5432/keycloak_db
-set KC_DB_USERNAME=keycloak_user
-set KC_DB_PASSWORD=1234
-
-kc.bat start --http-enabled=true --hostname-strict=false --optimized
-```
-
-> Make sure the `keycloak_db` database and the `keycloak_user` role already
-> exist in your local PostgreSQL before running the script. This avoids relying
-> on Keycloak's default in-memory database, which can be lost or corrupted
-> between restarts.
-
-After Keycloak is up, create the `dmh-realm` realm and the `api-user` client
-(credentials must match the ones declared in `docker-compose.yml`).
-
-### 2. Build and run with Docker Compose
-
-The project ships a `docker-compose.yml` that orchestrates the full stack
-(`postgres`, `api-eureka`, `api-user`, `api-gateway`).
+### 4. Build and run with Docker Compose
 
 ```bash
 docker compose up --build
 ```
 
-This will:
-- Build the Docker images for `api-eureka`, `api-user` and `api-gateway`.
-- Start a PostgreSQL instance and wait until it is healthy.
-- Start the Eureka service discovery (`http://localhost:8761`).
-- Start the `api-user` microservice (`http://localhost:8081`).
-- Start the `api-gateway` (`http://localhost:8083`).
+Services started:
+
+| Service       | Host port | Notes                                                               |
+|---------------|-----------|---------------------------------------------------------------------|
+| `postgres`    | `5432`    | Database for the `api-user` microservice.                           |
+| `keycloak-db` | —         | **Dedicated** database for Keycloak (separated from api-user).      |
+| `keycloak`    | `8080`    | Identity Provider. Auto-imports the realm from `realm-export.json`. |
+| `api-eureka`  | `8761`    | Service Discovery.                                                  |
+| `api-user`    | `8081`    | User microservice + Auth (Keycloak).                                |
+| `api-gateway` | `8083`    | API Gateway.                                                        |
 
 To stop the stack:
 
@@ -115,19 +109,27 @@ To stop the stack:
 docker compose down
 ```
 
-To stop the stack and remove persisted data (volumes):
+To stop **and remove volumes** (DBs, keys, etc.):
 
 ```bash
 docker compose down -v
 ```
 
-### 3. Verify the stack is up
+### 5. Verify the stack is up
 
-Once the containers are running, you can check:
+Once the containers are `running`, you can verify:
 
 - Eureka dashboard: http://localhost:8761
+- Keycloak admin console: http://localhost:8080 (admin / password from `api-user.env`)
+- Keycloak realm discovery: http://localhost:8080/realms/dmh-realm/.well-known/openid-configuration
 - api-user health: http://localhost:8081/actuator/health
 - api-gateway health: http://localhost:8083/actuator/health
+
+To confirm that the realm was imported successfully:
+
+```bash
+docker logs dmh-keycloak | grep -i "realm imported"
+```
 
 ---
 
@@ -136,14 +138,27 @@ Once the containers are running, you can check:
 ### Running the tests
 
 The project has automated tests for the `api-user` microservice. The easiest way
-to run **all** the tests is to execute the [`ApiUserControllerTest`](Project/DMH/api-user/src/test/java/com/dmh/UserController/ApiUserControllerTest.java:1) suite, which is the integration suite that triggers the full
-test suite (service unit tests + controller integration tests + context tests).`
+to run **all** the tests is to execute the [`ApiUserControllerTest`](Project/DMH/api-user/src/test/java/com/dmh/UserController/ApiUserControllerTest.java:1) suite, which is the integration suite that triggers the full test suite (service unit tests + controller integration tests + context tests).
+
+From the repository root:
+
+```bash
+cd Project/DMH/api-user
+./mvnw test
+```
+
+Or, if you only want to run the controller suite that aggregates every test:
+
+```bash
+./mvnw -Dtest=ApiUserControllerTest test
+```
 
 Test coverage included in this microservice:
 
 - Unit tests in [`ApiUserServiceTest`](Project/DMH/api-user/src/test/java/com/dmh/UserService/ApiUserServiceTest.java:1)
 - Integration tests in [`ApiUserControllerTest`](Project/DMH/api-user/src/test/java/com/dmh/UserController/ApiUserControllerTest.java:1)
 - 1 context test in [`ApiUserApplicationTests`](Project/DMH/api-user/src/test/java/com/dmh/ApiUserApplicationTests.java:1)
+
 
 ### Test documentation
 
@@ -169,7 +184,6 @@ You can import the JSON file directly into Postman via
 *File → Import → Upload Files* and select the file from the `PostmanCollection/`
 folder.
 
-## Architecture
 ##  Entity - Relation Diagram
 ![Diagrams/MER-DMH.png](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DER-DMH.png)
 
