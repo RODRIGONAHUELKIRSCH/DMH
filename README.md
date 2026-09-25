@@ -184,11 +184,20 @@ You can import the JSON file directly into Postman via
 *File → Import → Upload Files* and select the file from the `PostmanCollection/`
 folder.
 
-##  Entity - Relation Diagram
-![Diagrams/MER-DMH.png](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DER-DMH.png)
+
+## Entity - Relation Diagram
+
+![Entity-Relation Diagram](ttps://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DER-DMH.png)
+
+The Entity-Relation (ER) diagram describes the conceptual data model of the DMH system. It shows the four main entities — **User**, **Account**, **Card** and **Transaction** — along with their attributes and the relationships between them.
+
+This diagram is used as the blueprint for the relational model and JPA mappings implemented across the microservices.
 
 ## Relational Diagram
-![Diagrams/MR-DMH.png](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DR-DMH.png)
+
+![Relational Diagram](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DR-DMH.png)
+
+The Relational Diagram (DR) shows the **physical/logical schema** derived from the ER model. Each entity is represented as a table — `users`, `account`, `cards` and `transaction` — with their primary keys, foreign keys, data types and constraints. It documents how the conceptual entities are persisted in the shared PostgreSQL `dmh` database, including:
 
 ---
 
@@ -240,10 +249,6 @@ The four entities (`User`, `Account`, `Card`, `Transaction`) are connected by `1
 - The official reference on JPA field-relation annotations (`@JoinColumn`, `@ManyToOne`, `@OneToMany`, `@ManyToMany`, `@ForeignKey`), see [`fieldrelations.md`](fieldrelations.md:1).
 - Concrete, fully-worked JPA mappings for the four DMH relationships (with code for each entity), see [`relationssuggestions.md`](relationssuggestions.md:1).
 - The discussion on why the `userId` mapping in `Account` uses `keycloakUserId` and how to share the `User` entity across modules via `dmh-common`, see [`userid.md`](userid.md:1).
-
-### Architecture diagram (raw)
-
-![DMH Architecture raw](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DMH-Architecture.png)
 
 ## User
 Represents a registered user of the platform.
