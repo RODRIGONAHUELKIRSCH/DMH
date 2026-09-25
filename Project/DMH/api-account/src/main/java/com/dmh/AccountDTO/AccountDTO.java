@@ -2,6 +2,7 @@ package com.dmh.AccountDTO;
 
 import com.dmh.Entity.Account;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import java.time.ZonedDateTime;
 import java.util.UUID;
@@ -10,8 +11,6 @@ import java.util.UUID;
 public class
 AccountDTO {
 
-    @NotBlank
-    private UUID id;
 
     @NotBlank
     private String amount;
@@ -23,23 +22,15 @@ AccountDTO {
     private String account_type;
 
     @NotBlank
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private UUID user_id;
 
     public AccountDTO(){}
 
-    public AccountDTO(UUID id , String amount, ZonedDateTime created_at,UUID user_id){
-        this.id=id;
+    public AccountDTO( String amount, ZonedDateTime created_at,UUID user_id){
         this.amount=amount;
         this.created_at=created_at;
         this.user_id=user_id;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
     }
 
     public String getAmount() {

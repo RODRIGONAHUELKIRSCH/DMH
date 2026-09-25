@@ -190,6 +190,61 @@ folder.
 ## Relational Diagram
 ![Diagrams/MR-DMH.png](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DR-DMH.png)
 
+---
+
+## Architecture
+
+DMH is deployed as a set of independent Spring Boot microservices that **share a single PostgreSQL database** (`dmh`). Each microservice owns one table within that database and registers itself with Eureka so the Gateway can route traffic to it. There is **no HTTP communication between microservices** for data access — cross-table reads happen via JDBC JOINs against the same DB, which keeps the architecture loosely coupled and fast.
+
+![Diagrams/DMH Architecture](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DMH-Architecture.png)
+
+### Components
+
+| Component                                                                                                                     | Port   | Role                                                                                                                                                                                                                                                                       |
+|-------------------------------------------------------------------------------------------------------------------------------|--------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Frontend**                                                                                                                  | —      | App / Postman / browser. Talks **only** to the API Gateway.                                                                                                                                                                                                                |
+| **API Gateway** ([`api-gateway`](Project/DMH/api-gateway/src/main/java/com/dmh/ApiGatewayApplication.java:1))                 | `8083` | Single entry point. Spring Cloud Gateway (WebFlux). Routes by path to the right microservice via Eureka (`lb://API-USER`, etc.). Forwards the JWT.                                                                                                                         |
+| **Eureka Server** ([`api-eureka`](Project/DMH/api-eureka/src/main/java/com/dmh/api_eureka/ApiEurekaApplication.java:1))       | `8761` | Service registry. Microservices register here on startup and send a heartbeat every 30 s. The Gateway queries Eureka to resolve `API-USER` → `10.0.0.5:8081`. **Eureka is never in the request path**; once the Gateway has the IP, it talks directly to the microservice. |
+| **api-user** ([`api-user`](Project/DMH/api-user/src/main/java/com/dmh/ApiUserApplication.java:1))                             | `8081` | Owner of the `users` table. Handles registration, login (Keycloak), verification email, password reset. WebFlux + Resource Server JWT + Keycloak Admin Client.                                                                                                             |
+| **api-account** ([`api-account`](Project/DMH/api-account/src/main/java/com/dmh/ApiAccountApplication.java:1))                 | `8082` | Owner of the `account` table. Manages accounts, balances, CVU and alias.                                                                                                                                                                                                   |
+| **api-card** ([`api-card`](Project/DMH/api-card/src/main/java/com/dmh/ApiCardApplication.java:1))                             | —      | Owner of the `cards` table.                                                                                                                                                                                                                                                |
+| **api-transaction** ([`api-transaction`](Project/DMH/api-transaction/src/main/java/com/dmh/ApiTransactionApplication.java:1)) | `8084` | Owner of the `transaction` table.                                                                                                                                                                                                                                          |
+| **Keycloak**                                                                                                                  | `8080` | Identity Provider. Stores users, issues and validates JWTs. Has its **own** PostgreSQL database (separate from the business DB).                                                                                                                                           |
+| **PostgreSQL `dmh`**                                                                                                          | `5432` | Single shared DB with one table per microservice: `users`, `account`, `cards`, `transaction`. Cross-service reads use JDBC JOINs.                                                                                                                                          |
+
+### Communication patterns
+
+| From         | To           | Direction | Mechanism                                    |
+|--------------|--------------|-----------|----------------------------------------------|
+| Frontend     | Gateway      | →         | HTTPS + JWT                                  |
+| Gateway      | Microservice | →         | HTTP direct (via `lb://` resolved by Eureka) |
+| Microservice | Eureka       | →         | Register + heartbeat every 30 s              |
+| Gateway      | Eureka       | ↔         | Lookup `API-X` → `ip:port` (cached)          |
+| Microservice | PostgreSQL   | →         | JDBC                                         |
+| api-user     | Keycloak     | ↔         | Admin REST + JWT validation                  |
+
+### Why no Feign between microservices
+
+Cross-microservice data access is **not** done via Feign clients or any other HTTP mechanism. Reasons:
+
+1. The data lives in the **same database**. A JOIN resolves in <5 ms; an HTTP call would take 50–200 ms (serialization + network + parsing).
+2. The whole point of microservices here is **loose coupling**. Adding a Feign dependency between two services makes one of them a runtime dependency of the other (if `api-user` goes down, `api-account` partially breaks) — the opposite of decoupling.
+3. The Spring Data / JPA layer already provides clean abstractions (`@ManyToOne`, `@JoinColumn`, derived queries) that map directly to SQL JOINs.
+
+For a deep dive into the architecture and the rationale for each decision, see [`arq.md`](arq.md:1).
+
+### Data model & JPA relations
+
+The four entities (`User`, `Account`, `Card`, `Transaction`) are connected by `1:N` relationships, each implemented as `@ManyToOne` on the child side plus optional `@OneToMany(mappedBy=...)` on the parent side. For:
+
+- The official reference on JPA field-relation annotations (`@JoinColumn`, `@ManyToOne`, `@OneToMany`, `@ManyToMany`, `@ForeignKey`), see [`fieldrelations.md`](fieldrelations.md:1).
+- Concrete, fully-worked JPA mappings for the four DMH relationships (with code for each entity), see [`relationssuggestions.md`](relationssuggestions.md:1).
+- The discussion on why the `userId` mapping in `Account` uses `keycloakUserId` and how to share the `User` entity across modules via `dmh-common`, see [`userid.md`](userid.md:1).
+
+### Architecture diagram (raw)
+
+![DMH Architecture raw](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DMH-Architecture.png)
+
 ## User
 Represents a registered user of the platform.
 

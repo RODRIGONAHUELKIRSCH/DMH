@@ -4,8 +4,10 @@ import jakarta.persistence.*;
 import org.apache.catalina.User;
 import java.time.ZonedDateTime;
 import java.util.UUID;
+
 @Entity
-@Table(name = "account")
+@Table(name = "account",
+indexes = @Index(name = "account_id_user", columnList = "userId"))
 public class Account {
 
     @Id
@@ -21,16 +23,17 @@ public class Account {
     @Column(name="account_type",nullable = false)
     private String account_type;
 
-    @Column(name="userId", nullable = false,unique = true)
+    @Column(name="userId", nullable = false)
     private UUID userId;
 
     public  Account(){}
 
-    public Account(UUID id, String amount, ZonedDateTime created_at,String account_type){
+    public Account(UUID id, String amount, ZonedDateTime created_at,String account_type, UUID userId) {
         this.id=id;
         this.amount=amount;
         this.created_at=created_at;
         this.account_type=account_type;
+        this.userId= userId;
     }
 
     public UUID getId() {
@@ -65,4 +68,11 @@ public class Account {
         this.account_type = account_type;
     }
 
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
 }

@@ -12,7 +12,7 @@ public class AccountMapper {
             accountDTO.setAmount(account.getAmount());
             accountDTO.setCreated_at(account.getCreated_at());
             accountDTO.setAccount_type(account.getAccount_type());
-
+            accountDTO.setUser_id(account.getUserId());
             return accountDTO;
         }
 
@@ -21,7 +21,7 @@ public class AccountMapper {
             account.setAmount(accountDTO.getAmount());
             account.setCreated_at(accountDTO.getCreated_at());
             account.setAccount_type(accountDTO.getAccount_type());
-
+            account.setUserId(accountDTO.getUser_id());
             return account;
         }
 
