@@ -187,7 +187,7 @@ folder.
 
 ## Entity - Relation Diagram
 
-![Entity-Relation Diagram](ttps://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DMH-DER.png)
+![Entity-Relation Diagram](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DMH-DER.png)
 
 The Entity-Relation (ER) diagram describes the conceptual data model of the DMH system. It shows the four main entities — **User**, **Account**, **Card** and **Transaction** — along with their attributes and the relationships between them.
 
