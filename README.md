@@ -187,7 +187,7 @@ folder.
 
 ## Entity - Relation Diagram
 
-![Entity-Relation Diagram](ttps://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DER-DMH.png)
+![Entity-Relation Diagram](ttps://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DMH-DER.png)
 
 The Entity-Relation (ER) diagram describes the conceptual data model of the DMH system. It shows the four main entities — **User**, **Account**, **Card** and **Transaction** — along with their attributes and the relationships between them.
 
@@ -195,7 +195,7 @@ This diagram is used as the blueprint for the relational model and JPA mappings 
 
 ## Relational Diagram
 
-![Relational Diagram](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DR-DMH.png)
+![Relational Diagram](https://github.com/RODRIGONAHUELKIRSCH/DMH/blob/main/Diagrams/DMH-DR.png)
 
 The Relational Diagram (DR) shows the **physical/logical schema** derived from the ER model. Each entity is represented as a table — `users`, `account`, `cards` and `transaction` — with their primary keys, foreign keys, data types and constraints. It documents how the conceptual entities are persisted in the shared PostgreSQL `dmh` database, including:
 
